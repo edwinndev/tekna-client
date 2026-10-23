@@ -189,7 +189,13 @@ export function DashboardView() {
                   Periféricos con stock en nivel mínimo o agotados
                 </CardDescription>
               </div>
-              <Button variant="ghost" size="sm" render={<Link href="/alerts" />} className="gap-1 text-xs">
+              <Button
+                variant="ghost"
+                size="sm"
+                nativeButton={false}
+                render={<Link href="/alerts" />}
+                className="gap-1 text-xs"
+              >
                 Ver todas las alertas
                 <ArrowRight className="h-3.5 w-3.5" />
               </Button>
@@ -272,7 +278,13 @@ export function DashboardView() {
                   Registro en tiempo real de entradas por compra y salidas por venta
                 </CardDescription>
               </div>
-              <Button variant="ghost" size="sm" render={<Link href="/movements" />} className="gap-1 text-xs">
+              <Button
+                variant="ghost"
+                size="sm"
+                nativeButton={false}
+                render={<Link href="/movements" />}
+                className="gap-1 text-xs"
+              >
                 Ver historial completo
                 <ArrowRight className="h-3.5 w-3.5" />
               </Button>
@@ -423,6 +435,7 @@ export function DashboardView() {
               <Button
                 variant="outline"
                 className="justify-start gap-2 h-auto py-2.5"
+                nativeButton={false}
                 render={<Link href="/products" />}
               >
                 <Package className="h-4 w-4 text-primary" />
@@ -435,6 +448,7 @@ export function DashboardView() {
               <Button
                 variant="outline"
                 className="justify-start gap-2 h-auto py-2.5"
+                nativeButton={false}
                 render={<Link href="/alerts" />}
               >
                 <AlertTriangle className="h-4 w-4 text-amber-500" />
@@ -447,6 +461,7 @@ export function DashboardView() {
               <Button
                 variant="outline"
                 className="justify-start gap-2 h-auto py-2.5"
+                nativeButton={false}
                 render={<Link href="/movements" />}
               >
                 <ArrowDownCircle className="h-4 w-4 text-emerald-500" />

@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link";
 import {
   Avatar,
   AvatarFallback,
@@ -98,10 +99,9 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOutIcon
-              />
-              Log out
+            <DropdownMenuItem render={<Link href="/login" />}>
+              <LogOutIcon />
+              Cerrar sesión
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

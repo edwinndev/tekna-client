@@ -36,6 +36,12 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const pathname = usePathname();
+  const isAuthRoute = pathname === "/login" || pathname.startsWith("/login");
+
+  if (isAuthRoute) {
+    return <main className="min-h-screen w-full bg-[#0d0a18]">{children}</main>;
+  }
+
   const currentTitle = routeTitleMap[pathname] || "Tekna Gamer";
 
   return (

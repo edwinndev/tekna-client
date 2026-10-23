@@ -3,102 +3,68 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useForm } from "@tanstack/react-form";
 import { AlertCircle, CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { loginSchema } from "../schemas/login.schema";
+import { useAuth } from "../hooks/use-auth";
+import { LoginFormValues } from "../types/auth";
 
 interface LoginFormProps {
   onValidationError?: () => void;
   onSuccess?: () => void;
 }
 
-interface FormFieldErrors {
-  email: string | null;
-  password: string | null;
-}
-
 export function LoginForm({ onValidationError, onSuccess }: LoginFormProps) {
   const router = useRouter();
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [rememberMe, setRememberMe] = useState<boolean>(false);
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [globalSuccess, setGlobalSuccess] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<FormFieldErrors>({
-    email: null,
-    password: null,
-  });
 
-  const handleInputChange = (field: "email" | "password", value: string) => {
-    if (field === "email") {
-      setEmail(value);
-    } else {
-      setPassword(value);
-    }
+  const initialValues: LoginFormValues = {
+    username: "",
+    password: "",
+    rememberMe: false,
+  };
 
-    if (fieldErrors[field] || globalError) {
-      setFieldErrors((prev: FormFieldErrors) => ({
-        ...prev,
-        [field]: null,
-      }));
+  const form = useForm({
+    defaultValues: initialValues,
+    onSubmit: async ({ value }: { value: LoginFormValues }) => {
       setGlobalError(null);
-    }
-  };
+      setGlobalSuccess(null);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setGlobalError(null);
-    setGlobalSuccess(null);
+      const validation = loginSchema.safeParse(value);
+      if (!validation.success) {
+        onValidationError?.();
+        return;
+      }
 
-    const validationResult = loginSchema.safeParse({
-      email,
-      password,
-      rememberMe,
-    });
+      try {
+        await login(
+          {
+            username: value.username,
+            password: value.password,
+          },
+          value.rememberMe
+        );
 
-    if (!validationResult.success) {
-      const formattedErrors: FormFieldErrors = {
-        email: null,
-        password: null,
-      };
+        setGlobalSuccess("Sesión iniciada correctamente. Redirigiendo al panel...");
+        onSuccess?.();
 
-      validationResult.error.issues.forEach((issue) => {
-        const path = issue.path[0];
-        if (path === "email" && !formattedErrors.email) {
-          formattedErrors.email = issue.message;
-        }
-        if (path === "password" && !formattedErrors.password) {
-          formattedErrors.password = issue.message;
-        }
-      });
-
-      setFieldErrors(formattedErrors);
-      onValidationError?.();
-      return;
-    }
-
-    setFieldErrors({ email: null, password: null });
-    setIsSubmitting(true);
-
-    try {
-      // UI demo flow: simulates authentication submission
-      await new Promise<void>((resolve: () => void) => {
-        window.setTimeout(() => resolve(), 900);
-      });
-
-      setGlobalSuccess("Sesión iniciada correctamente. Redirigiendo al panel...");
-      onSuccess?.();
-
-      window.setTimeout(() => {
-        router.push("/");
-      }, 800);
-    } catch {
-      setGlobalError("Credenciales inválidas o problema de conexión.");
-      onValidationError?.();
-      setIsSubmitting(false);
-    }
-  };
+        window.setTimeout(() => {
+          router.push("/");
+        }, 800);
+      } catch {
+        setGlobalError("Credenciales inválidas o problema de conexión.");
+        onValidationError?.();
+      }
+    },
+  });
 
   return (
     <div className="w-full max-w-[420px] mx-auto text-[#ebe8f7]">
@@ -112,162 +78,227 @@ export function LoginForm({ onValidationError, onSuccess }: LoginFormProps) {
       </div>
 
       {globalError && (
-        <div
-          role="alert"
-          className="mb-5 flex items-start gap-3 rounded-xl border border-[#ff7a88]/40 bg-[#ff7a88]/10 p-3.5 text-sm text-[#ff7a88]"
+        <Alert
+          variant="destructive"
+          className="mb-5 border-[#ff7a88]/40 bg-[#ff7a88]/10 text-[#ff7a88] rounded-xl"
         >
-          <AlertCircle className="size-5 shrink-0 mt-0.5" />
-          <span>{globalError}</span>
-        </div>
+          <AlertCircle className="size-4 shrink-0 text-[#ff7a88]" />
+          <AlertDescription className="text-sm font-medium text-[#ff7a88]">
+            {globalError}
+          </AlertDescription>
+        </Alert>
       )}
 
       {globalSuccess && (
-        <div
-          role="alert"
-          className="mb-5 flex items-start gap-3 rounded-xl border border-[#5ce3a1]/40 bg-[#5ce3a1]/10 p-3.5 text-sm text-[#5ce3a1]"
-        >
-          <CheckCircle2 className="size-5 shrink-0 mt-0.5" />
-          <span>{globalSuccess}</span>
-        </div>
+        <Alert className="mb-5 border-[#5ce3a1]/40 bg-[#5ce3a1]/10 text-[#5ce3a1] rounded-xl">
+          <CheckCircle2 className="size-4 shrink-0 text-[#5ce3a1]" />
+          <AlertDescription className="text-sm font-medium text-[#5ce3a1]">
+            {globalSuccess}
+          </AlertDescription>
+        </Alert>
       )}
 
-      <form onSubmit={handleSubmit} noValidate className="space-y-5">
-        <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-[#ebe8f7] mb-1.5"
-          >
-            Correo
-          </label>
-          <div className="relative">
-            <input
-              id="email"
-              name="email"
-              type="email"
-              inputMode="email"
-              autoComplete="username"
-              value={email}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                handleInputChange("email", e.target.value)
-              }
-              aria-invalid={Boolean(fieldErrors.email)}
-              placeholder="nombre@teknagamer.pe"
-              className={`
-                w-full h-12 px-3.5 rounded-xl text-base text-[#ebe8f7] placeholder-[#a8a3c4]/50
-                bg-[#100c22] border transition-colors duration-150 outline-none
-                ${
-                  fieldErrors.email
-                    ? "border-[#ff7a88] focus:border-[#ff7a88] focus:ring-2 focus:ring-[#ff7a88]/30"
-                    : "border-[#2e2750] hover:border-[#43397a] focus:border-[#2ee6d6] focus:ring-2 focus:ring-[#2ee6d6]/20"
-                }
-              `}
-            />
-          </div>
-          {fieldErrors.email && (
-            <p className="mt-1.5 text-xs text-[#ff7a88]" role="alert">
-              {fieldErrors.email}
-            </p>
-          )}
-        </div>
+      <form
+        onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
+          e.preventDefault();
+          e.stopPropagation();
+          form.handleSubmit();
+        }}
+        noValidate
+        className="space-y-5"
+      >
+        <form.Field
+          name="username"
+          validators={{
+            onChange: ({ value }: { value: string }) => {
+              const res = loginSchema.shape.username.safeParse(value);
+              return res.success ? null : res.error.issues[0]?.message;
+            },
+          }}
+        >
+          {(field) => {
+            const hasError = Boolean(field.state.meta.errors.length > 0);
+            const errorMessage = field.state.meta.errors[0]
+              ? String(field.state.meta.errors[0])
+              : null;
 
-        <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-[#ebe8f7] mb-1.5"
-          >
-            Contraseña
-          </label>
-          <div className="relative">
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="current-password"
-              value={password}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                handleInputChange("password", e.target.value)
-              }
-              aria-invalid={Boolean(fieldErrors.password)}
-              placeholder="••••••••••••"
-              className={`
-                w-full h-12 pl-3.5 pr-24 rounded-xl text-base text-[#ebe8f7] placeholder-[#a8a3c4]/50
-                bg-[#100c22] border transition-colors duration-150 outline-none
-                ${
-                  fieldErrors.password
-                    ? "border-[#ff7a88] focus:border-[#ff7a88] focus:ring-2 focus:ring-[#ff7a88]/30"
-                    : "border-[#2e2750] hover:border-[#43397a] focus:border-[#2ee6d6] focus:ring-2 focus:ring-[#2ee6d6]/20"
+            return (
+              <Field data-invalid={hasError} className="space-y-1.5">
+                <FieldLabel
+                  htmlFor={field.name}
+                  className="text-sm font-medium text-[#ebe8f7]"
+                >
+                  Correo
+                </FieldLabel>
+                <Input
+                  id={field.name}
+                  name={field.name}
+                  type="email"
+                  inputMode="email"
+                  autoComplete="username email"
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    field.handleChange(e.target.value);
+                    if (globalError) {
+                      setGlobalError(null);
+                    }
+                  }}
+                  aria-invalid={hasError}
+                  placeholder="admin@teknagamer.pe"
+                  className={`
+                    w-full h-12 px-3.5 rounded-xl text-base text-[#ebe8f7] placeholder-[#a8a3c4]/50
+                    bg-[#100c22] border transition-colors duration-150 outline-none
+                    ${
+                      hasError
+                        ? "border-[#ff7a88] focus-visible:border-[#ff7a88] focus-visible:ring-[#ff7a88]/30"
+                        : "border-[#2e2750] hover:border-[#43397a] focus-visible:border-[#2ee6d6] focus-visible:ring-[#2ee6d6]/20"
+                    }
+                  `}
+                />
+                {errorMessage && (
+                  <FieldError className="text-xs text-[#ff7a88]">
+                    {errorMessage}
+                  </FieldError>
+                )}
+              </Field>
+            );
+          }}
+        </form.Field>
+
+        <form.Field
+          name="password"
+          validators={{
+            onChange: ({ value }: { value: string }) => {
+              const res = loginSchema.shape.password.safeParse(value);
+              return res.success ? null : res.error.issues[0]?.message;
+            },
+          }}
+        >
+          {(field) => {
+            const hasError = Boolean(field.state.meta.errors.length > 0);
+            const errorMessage = field.state.meta.errors[0]
+              ? String(field.state.meta.errors[0])
+              : null;
+
+            return (
+              <Field data-invalid={hasError} className="space-y-1.5">
+                <FieldLabel
+                  htmlFor={field.name}
+                  className="text-sm font-medium text-[#ebe8f7]"
+                >
+                  Contraseña
+                </FieldLabel>
+                <div className="relative">
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      field.handleChange(e.target.value);
+                      if (globalError) {
+                        setGlobalError(null);
+                      }
+                    }}
+                    aria-invalid={hasError}
+                    placeholder="••••••••••••"
+                    className={`
+                      w-full h-12 pl-3.5 pr-24 rounded-xl text-base text-[#ebe8f7] placeholder-[#a8a3c4]/50
+                      bg-[#100c22] border transition-colors duration-150 outline-none
+                      ${
+                        hasError
+                          ? "border-[#ff7a88] focus-visible:border-[#ff7a88] focus-visible:ring-[#ff7a88]/30"
+                          : "border-[#2e2750] hover:border-[#43397a] focus-visible:border-[#2ee6d6] focus-visible:ring-[#2ee6d6]/20"
+                      }
+                    `}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowPassword((prev: boolean) => !prev)}
+                    aria-label={
+                      showPassword
+                        ? "Ocultar contraseña"
+                        : "Mostrar contraseña"
+                    }
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-8 px-2.5 rounded-lg flex items-center gap-1.5 text-xs font-medium text-[#a8a3c4] hover:text-white hover:bg-white/5 cursor-pointer"
+                  >
+                    {showPassword ? (
+                      <>
+                        <EyeOff className="size-3.5" />
+                        <span>Ocultar</span>
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="size-3.5" />
+                        <span>Mostrar</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+                {errorMessage && (
+                  <FieldError className="text-xs text-[#ff7a88]">
+                    {errorMessage}
+                  </FieldError>
+                )}
+              </Field>
+            );
+          }}
+        </form.Field>
+
+        <form.Field name="rememberMe">
+          {(field) => (
+            <div className="flex items-center gap-2.5 pt-1">
+              <Checkbox
+                id={field.name}
+                checked={field.state.value}
+                onCheckedChange={(checked: boolean) =>
+                  field.handleChange(checked)
                 }
-              `}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev: boolean) => !prev)}
-              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-              aria-pressed={showPassword}
-              className="absolute right-2 top-1/2 -translate-y-1/2 h-8 px-2.5 rounded-lg flex items-center gap-1.5 text-xs font-medium text-[#a8a3c4] hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                className="size-4.5 rounded border-[#2e2750] bg-[#100c22] text-[#2ee6d6] data-checked:bg-[#2ee6d6] data-checked:border-[#2ee6d6] data-checked:text-[#0d0a18] cursor-pointer"
+              />
+              <FieldLabel
+                htmlFor={field.name}
+                className="text-sm text-[#a8a3c4] hover:text-[#ebe8f7] cursor-pointer select-none font-normal"
+              >
+                Mantener la sesión en este equipo
+              </FieldLabel>
+            </div>
+          )}
+        </form.Field>
+
+        <form.Subscribe
+          selector={(state) => [state.isSubmitting, state.canSubmit]}
+        >
+          {([isSubmitting]) => (
+            <Button
+              type="submit"
+              disabled={Boolean(isSubmitting)}
+              className="
+                w-full h-[50px] mt-2 rounded-xl
+                bg-[#2ee6d6] hover:bg-[#25d8c7] text-[#0d0a18] hover:text-[#0d0a18]
+                font-['Chakra_Petch',sans-serif] font-bold text-base sm:text-[17px] tracking-wide
+                shadow-none hover:shadow-none active:translate-y-0
+                disabled:opacity-60 disabled:cursor-wait
+                transition-colors duration-150 ease-out
+                flex items-center justify-center gap-2 cursor-pointer
+              "
             >
-              {showPassword ? (
+              {isSubmitting ? (
                 <>
-                  <EyeOff className="size-3.5" />
-                  <span>Ocultar</span>
+                  <Loader2 className="size-5 animate-spin" />
+                  <span>Iniciando sesión...</span>
                 </>
               ) : (
-                <>
-                  <Eye className="size-3.5" />
-                  <span>Mostrar</span>
-                </>
+                <span>Iniciar sesión</span>
               )}
-            </button>
-          </div>
-          {fieldErrors.password && (
-            <p className="mt-1.5 text-xs text-[#ff7a88]" role="alert">
-              {fieldErrors.password}
-            </p>
+            </Button>
           )}
-        </div>
-
-        <div className="flex items-center gap-2.5 pt-1">
-          <input
-            id="rememberMe"
-            name="rememberMe"
-            type="checkbox"
-            checked={rememberMe}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setRememberMe(e.target.checked)
-            }
-            className="size-4.5 rounded border-[#2e2750] bg-[#100c22] text-[#2ee6d6] accent-[#2ee6d6] focus:ring-[#2ee6d6] cursor-pointer"
-          />
-          <label
-            htmlFor="rememberMe"
-            className="text-sm text-[#a8a3c4] hover:text-[#ebe8f7] cursor-pointer select-none"
-          >
-            Mantener la sesión en este equipo
-          </label>
-        </div>
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="
-            w-full h-[50px] mt-2 rounded-xl
-            bg-[#2ee6d6] text-[#0d0a18]
-            font-['Chakra_Petch',sans-serif] font-bold text-base sm:text-[17px] tracking-wide
-            shadow-[0_4px_0_#14998f]
-            hover:brightness-110 active:translate-y-[3px] active:shadow-[0_1px_0_#14998f]
-            disabled:opacity-60 disabled:cursor-wait
-            transition-all duration-100 ease-out
-            flex items-center justify-center gap-2 cursor-pointer
-          "
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="size-5 animate-spin" />
-              <span>Iniciando sesión...</span>
-            </>
-          ) : (
-            <span>Iniciar sesión</span>
-          )}
-        </button>
+        </form.Subscribe>
       </form>
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3 text-sm">

@@ -10,7 +10,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - API_BACKEND_URL=http://tekna-api:8081
+      - API_BACKEND_URL=http://tekna-api:8080
     networks:
       - tekna-network
 

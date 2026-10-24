@@ -8,8 +8,7 @@ deploy_production:
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
   script:
-    - echo "Deploying tekna-client application..."
-    - docker build -t tekna-client:latest .
-    - docker rm -f tekna-client 2>/dev/null || true
-    - docker run -d --name tekna-client --restart always -p 3000:3000 tekna-client:latest
+    - echo "Deploying tekna-client with docker compose on tekna-network..."
+    - docker compose down || true
+    - docker compose up -d --build
     - docker image prune -f

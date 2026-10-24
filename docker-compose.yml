@@ -6,8 +6,14 @@ services:
       dockerfile: Dockerfile
     restart: always
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - API_BACKEND_URL=http://localhost:8081
+      - API_BACKEND_URL=http://tekna-api:8081
+    networks:
+      - tekna-network
+
+networks:
+  tekna-network:
+    external: true

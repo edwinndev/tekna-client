@@ -151,7 +151,7 @@ function MovementCreateFormFields({
             </div>
           </div>
 
-          <div className="grid gap-2">
+          <div className="grid gap-2 min-w-0">
             <Label htmlFor="mov-product">Producto</Label>
             <Select
               value={productId}
@@ -159,8 +159,8 @@ function MovementCreateFormFields({
               items={productItems}
               disabled={loading}
             >
-              <SelectTrigger id="mov-product" className="w-full">
-                <SelectValue placeholder="Seleccione un producto">
+              <SelectTrigger id="mov-product" className="w-full min-w-0">
+                <SelectValue placeholder="Seleccione un producto" className="truncate min-w-0">
                   {(val: string | null) =>
                     val && productItems[val]
                       ? productItems[val]
@@ -170,7 +170,7 @@ function MovementCreateFormFields({
               </SelectTrigger>
               <SelectContent>
                 {products.map((p: ProductOutput) => (
-                  <SelectItem key={p.id} value={p.id}>
+                  <SelectItem key={p.id} value={p.id} className="truncate">
                     {p.name} ({p.sku})
                   </SelectItem>
                 ))}
@@ -256,7 +256,7 @@ function MovementCreateFormFields({
         </div>
 
         {movementType === "ENTRY" && (
-          <div className="grid gap-2">
+          <div className="grid gap-2 min-w-0">
             <Label htmlFor="mov-supplier">Proveedor (opcional para entradas)</Label>
             <Select
               value={supplierId}
@@ -264,8 +264,8 @@ function MovementCreateFormFields({
               items={supplierItems}
               disabled={loading}
             >
-              <SelectTrigger id="mov-supplier" className="w-full">
-                <SelectValue placeholder="Seleccione el proveedor o distribuidor">
+              <SelectTrigger id="mov-supplier" className="w-full min-w-0">
+                <SelectValue placeholder="Seleccione el proveedor o distribuidor" className="truncate min-w-0">
                   {(val: string | null) =>
                     val && supplierItems[val]
                       ? supplierItems[val]
@@ -275,7 +275,7 @@ function MovementCreateFormFields({
               </SelectTrigger>
               <SelectContent>
                 {suppliers.map((s: SupplierOutput) => (
-                  <SelectItem key={s.id} value={s.id}>
+                  <SelectItem key={s.id} value={s.id} className="truncate">
                     {s.name}
                   </SelectItem>
                 ))}

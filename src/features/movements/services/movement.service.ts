@@ -11,7 +11,7 @@ export class MovementService {
     input: CreateInventoryMovementInput
   ): Promise<InventoryMovementOutput> {
     return await apiClient
-      .post("movements", { json: input })
+      .post("inventory/movements", { json: input })
       .json<InventoryMovementOutput>();
   }
 
@@ -22,14 +22,16 @@ export class MovementService {
   }
 
   public async getById(id: string): Promise<InventoryMovementOutput> {
-    return await apiClient.get(`movements/${id}`).json<InventoryMovementOutput>();
+    return await apiClient
+      .get(`inventory/movements/${id}`)
+      .json<InventoryMovementOutput>();
   }
 
   public async search(
     input: SearchInput<InventoryMovementFilterInput>
   ): Promise<PageOutput<InventoryMovementOutput>> {
     return await apiClient
-      .post("movements/filter", { json: input })
+      .post("inventory/movements/filter", { json: input })
       .json<PageOutput<InventoryMovementOutput>>();
   }
 }

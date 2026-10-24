@@ -1,0 +1,15 @@
+stages:
+  - deploy
+
+deploy_production:
+  stage: deploy
+  tags:
+    - tekna-platform
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"
+  script:
+    - echo "Deploying tekna-client application..."
+    - docker build -t tekna-client:latest .
+    - docker rm -f tekna-client 2>/dev/null || true
+    - docker run -d --name tekna-client --restart always -p 3000:3000 tekna-client:latest
+    - docker image prune -f

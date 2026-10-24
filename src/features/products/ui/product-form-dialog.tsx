@@ -114,7 +114,7 @@ function ProductFormFields({
             />
           </div>
 
-          <div className="grid gap-2">
+          <div className="grid gap-2 min-w-0">
             <Label htmlFor="product-category">Categoría</Label>
             <Select
               value={categoryId}
@@ -122,8 +122,8 @@ function ProductFormFields({
               items={categoryItems}
               disabled={loading}
             >
-              <SelectTrigger id="product-category" className="w-full">
-                <SelectValue placeholder="Seleccione una categoría">
+              <SelectTrigger id="product-category" className="w-full min-w-0">
+                <SelectValue placeholder="Seleccione una categoría" className="truncate min-w-0">
                   {(val: string | null) =>
                     val && categoryItems[val]
                       ? categoryItems[val]
@@ -133,7 +133,7 @@ function ProductFormFields({
               </SelectTrigger>
               <SelectContent>
                 {categories.map((cat: CategoryOutput) => (
-                  <SelectItem key={cat.id} value={cat.id}>
+                  <SelectItem key={cat.id} value={cat.id} className="truncate">
                     {cat.name}
                   </SelectItem>
                 ))}

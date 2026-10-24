@@ -1,6 +1,25 @@
 import { ProductOutput } from "@/features/products/types/product";
 
 export type AlertSeverity = "OUT_OF_STOCK" | "CRITICAL" | "WARNING";
+export type AlertStatus = "PENDING" | "ATTENDED";
+
+export interface AlertOutput {
+  id: string;
+  productId: string;
+  productSku: string;
+  productName: string;
+  stockRecorded: number;
+  minStockSnapshot: number;
+  status: AlertStatus;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface AlertFilterInput {
+  productId?: string;
+  status?: AlertStatus;
+  productQuery?: string;
+}
 
 export interface AlertSummaryStats {
   totalAlerts: number;
@@ -10,6 +29,7 @@ export interface AlertSummaryStats {
 }
 
 export class StockAlertModel {
+  public readonly id: string;
   public readonly productId: string;
   public readonly productName: string;
   public readonly productSku: string;
@@ -20,8 +40,14 @@ export class StockAlertModel {
   public readonly severity: AlertSeverity;
   public readonly deficit: number;
   public readonly recommendedOrderQuantity: number;
+  public readonly status: AlertStatus;
+  public readonly createdAt: string;
 
-  constructor(product: ProductOutput) {
+  constructor(
+    product: ProductOutput,
+    existingAlert?: AlertOutput
+  ) {
+    this.id = existingAlert ? existingAlert.id : product.id;
     this.productId = product.id;
     this.productName = product.name;
     this.productSku = product.sku;
@@ -29,6 +55,8 @@ export class StockAlertModel {
     this.currentStock = product.stock;
     this.minStock = product.minStock;
     this.price = product.price;
+    this.status = existingAlert ? existingAlert.status : "PENDING";
+    this.createdAt = existingAlert ? existingAlert.createdAt : new Date().toISOString();
 
     if (this.currentStock <= 0) {
       this.severity = "OUT_OF_STOCK";
@@ -47,6 +75,10 @@ export class StockAlertModel {
 
   public isOutOfStock(): boolean {
     return this.currentStock <= 0;
+  }
+
+  public isAttended(): boolean {
+    return this.status === "ATTENDED";
   }
 
   public getStockRatioPercentage(): number {

@@ -4,10 +4,13 @@ import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   Edit2,
+  FileSpreadsheet,
+  FileText,
   Plus,
   Search,
   Trash2,
 } from "lucide-react";
+import { reportService } from "@/core/services/report.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -57,6 +60,7 @@ export function ProductsView() {
   const [lowStockFilter, setLowStockFilter] = useState<boolean>(false);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductOutput | null>(null);
+  const [isExporting, setIsExporting] = useState<"EXCEL" | "PDF" | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -123,6 +127,36 @@ export function ProductsView() {
     }
   };
 
+  const handleExportExcel = async (): Promise<void> => {
+    setIsExporting("EXCEL");
+    try {
+      const blob: Blob = await reportService.exportProductsExcel({
+        categoryId: selectedCategory === "ALL" ? undefined : selectedCategory,
+        lowStockOnly: lowStockFilter ? true : undefined,
+      });
+      reportService.downloadBlob(blob, "tekna_products_inventory.xlsx");
+    } catch (error) {
+      console.error("Error al exportar inventario de productos a Excel:", error);
+    } finally {
+      setIsExporting(null);
+    }
+  };
+
+  const handleExportPdf = async (): Promise<void> => {
+    setIsExporting("PDF");
+    try {
+      const blob: Blob = await reportService.exportProductsPdf({
+        categoryId: selectedCategory === "ALL" ? undefined : selectedCategory,
+        lowStockOnly: lowStockFilter ? true : undefined,
+      });
+      reportService.downloadBlob(blob, "tekna_products_inventory.pdf");
+    } catch (error) {
+      console.error("Error al exportar inventario de productos a PDF:", error);
+    } finally {
+      setIsExporting(null);
+    }
+  };
+
   return (
     <div className="space-y-6 w-full min-w-0">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -132,10 +166,32 @@ export function ProductsView() {
             Control de inventario, niveles de stock mínimo y especificaciones comerciales
           </p>
         </div>
-        <Button onClick={handleOpenCreate} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nuevo producto
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportExcel}
+            disabled={products.length === 0 || isExporting !== null}
+            className="gap-1.5"
+          >
+            <FileSpreadsheet className="h-4 w-4 text-emerald-500" />
+            <span className="hidden sm:inline">Exportar</span> Excel
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportPdf}
+            disabled={products.length === 0 || isExporting !== null}
+            className="gap-1.5"
+          >
+            <FileText className="h-4 w-4 text-rose-500" />
+            <span className="hidden sm:inline">Exportar</span> PDF
+          </Button>
+          <Button onClick={handleOpenCreate} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Nuevo producto
+          </Button>
+        </div>
       </div>
 
       {errorMessage && (

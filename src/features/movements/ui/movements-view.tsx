@@ -5,11 +5,13 @@ import {
   ArrowDownCircle,
   ArrowUpCircle,
   ArrowLeftRight,
+  Calendar,
+  FileSpreadsheet,
+  FileText,
   Plus,
   Search,
-  FileText,
-  Calendar,
 } from "lucide-react";
+import { reportService } from "@/core/services/report.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -48,6 +50,7 @@ export function MovementsView() {
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [activeTypeFilter, setActiveTypeFilter] = useState<MovementType | "ALL">("ALL");
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [isExporting, setIsExporting] = useState<"EXCEL" | "PDF" | null>(null);
 
   useEffect(() => {
     fetchMovements();
@@ -80,6 +83,36 @@ export function MovementsView() {
     return success;
   };
 
+  const handleExportExcel = async (): Promise<void> => {
+    setIsExporting("EXCEL");
+    try {
+      const blob: Blob = await reportService.exportMovementsExcel({
+        movementType: activeTypeFilter === "ALL" ? undefined : activeTypeFilter,
+        documentNumber: searchTerm.trim() || undefined,
+      });
+      reportService.downloadBlob(blob, "tekna_inventory_movements.xlsx");
+    } catch (error) {
+      console.error("Error al exportar movimientos a Excel:", error);
+    } finally {
+      setIsExporting(null);
+    }
+  };
+
+  const handleExportPdf = async (): Promise<void> => {
+    setIsExporting("PDF");
+    try {
+      const blob: Blob = await reportService.exportMovementsPdf({
+        movementType: activeTypeFilter === "ALL" ? undefined : activeTypeFilter,
+        documentNumber: searchTerm.trim() || undefined,
+      });
+      reportService.downloadBlob(blob, "tekna_inventory_movements.pdf");
+    } catch (error) {
+      console.error("Error al exportar movimientos a PDF:", error);
+    } finally {
+      setIsExporting(null);
+    }
+  };
+
   return (
     <div className="space-y-6 w-full min-w-0">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -89,10 +122,32 @@ export function MovementsView() {
             Auditoría histórica de entradas, salidas y fluctuaciones de stock en Tekna Gamer
           </p>
         </div>
-        <Button onClick={() => setDialogOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Registrar movimiento
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportExcel}
+            disabled={movements.length === 0 || isExporting !== null}
+            className="gap-1.5"
+          >
+            <FileSpreadsheet className="h-4 w-4 text-emerald-500" />
+            <span className="hidden sm:inline">Exportar</span> Excel
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportPdf}
+            disabled={movements.length === 0 || isExporting !== null}
+            className="gap-1.5"
+          >
+            <FileText className="h-4 w-4 text-rose-500" />
+            <span className="hidden sm:inline">Exportar</span> PDF
+          </Button>
+          <Button onClick={() => setDialogOpen(true)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Registrar movimiento
+          </Button>
+        </div>
       </div>
 
       {errorMessage && (

@@ -1,0 +1,13 @@
+services:
+  tekna-client:
+    container_name: tekna-client
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - API_BACKEND_URL=http://localhost:8081

@@ -67,7 +67,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     {
       title: "Alertas de stock",
       url: "/alerts",
-      icon: <AlertTriangle className="size-4 text-amber-500" />,
+      icon: <AlertTriangle className="size-4" />,
       isActive: pathname.startsWith("/alerts"),
     },
     {

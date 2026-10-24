@@ -118,60 +118,67 @@ export function DashboardView() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-4 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground font-medium">Catálogo de productos</p>
-            <h3 className="text-2xl font-bold text-foreground mt-1">
-              {metrics ? metrics.totalProducts : "-"}
-            </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {metrics ? `${metrics.totalInventoryUnits} unidades en stock` : ""}
-            </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <Card className="px-3.5 py-2.5 flex items-center justify-between shadow-xs">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-muted-foreground font-medium truncate">Catálogo de productos</p>
+            <div className="flex items-baseline gap-2 mt-0.5">
+              <span className="text-xl font-bold tracking-tight text-foreground">
+                {metrics ? metrics.totalProducts : "-"}
+              </span>
+              <span className="text-xs text-muted-foreground truncate">
+                {metrics ? `${metrics.totalInventoryUnits} unids.` : ""}
+              </span>
+            </div>
           </div>
-          <div className="p-2.5 rounded-lg bg-primary/10 text-primary">
-            <Package className="h-5 w-5" />
-          </div>
-        </Card>
-
-        <Card className="p-4 flex items-center justify-between border-amber-500/20 bg-amber-500/5">
-          <div>
-            <p className="text-xs text-amber-600 font-medium dark:text-amber-400">Alertas de stock bajo</p>
-            <h3 className="text-2xl font-bold text-amber-600 mt-1 dark:text-amber-400">
-              {metrics ? metrics.lowStockCount + metrics.outOfStockCount : "-"}
-            </h3>
-            <p className="text-xs text-amber-600/80 mt-0.5 dark:text-amber-400/80">
-              {metrics ? `${metrics.outOfStockCount} productos agotados` : ""}
-            </p>
-          </div>
-          <div className="p-2.5 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400">
-            <AlertTriangle className="h-5 w-5" />
+          <div className="p-2 rounded-md bg-primary/10 text-primary shrink-0 ml-2">
+            <Package className="h-4 w-4" />
           </div>
         </Card>
 
-        <Card className="p-4 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground font-medium">Movimientos registrados</p>
-            <h3 className="text-2xl font-bold text-foreground mt-1">
-              {metrics ? metrics.totalMovements : "-"}
-            </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Entradas y salidas históricas</p>
+        <Card className="px-3.5 py-2.5 flex items-center justify-between border-amber-500/20 bg-amber-500/5 shadow-xs">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-amber-600 font-medium dark:text-amber-400 truncate">Alertas de stock bajo</p>
+            <div className="flex items-baseline gap-2 mt-0.5">
+              <span className="text-xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
+                {metrics ? metrics.lowStockCount + metrics.outOfStockCount : "-"}
+              </span>
+              <span className="text-xs text-amber-600/80 dark:text-amber-400/80 truncate">
+                {metrics ? `${metrics.outOfStockCount} agotados` : ""}
+              </span>
+            </div>
           </div>
-          <div className="p-2.5 rounded-lg bg-emerald-500/10 text-emerald-500">
-            <ArrowDownCircle className="h-5 w-5" />
+          <div className="p-2 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0 ml-2">
+            <AlertTriangle className="h-4 w-4" />
           </div>
         </Card>
 
-        <Card className="p-4 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground font-medium">Valorización de inventario</p>
-            <h3 className="text-xl font-bold text-foreground mt-1">
-              {overview ? overview.getFormattedValuation() : "-"}
-            </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">Precio de venta estimado</p>
+        <Card className="px-3.5 py-2.5 flex items-center justify-between shadow-xs">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-muted-foreground font-medium truncate">Movimientos registrados</p>
+            <div className="flex items-baseline gap-2 mt-0.5">
+              <span className="text-xl font-bold tracking-tight text-foreground">
+                {metrics ? metrics.totalMovements : "-"}
+              </span>
+              <span className="text-xs text-muted-foreground truncate">Entradas y salidas</span>
+            </div>
           </div>
-          <div className="p-2.5 rounded-lg bg-blue-500/10 text-blue-500">
-            <DollarSign className="h-5 w-5" />
+          <div className="p-2 rounded-md bg-emerald-500/10 text-emerald-500 shrink-0 ml-2">
+            <ArrowDownCircle className="h-4 w-4" />
+          </div>
+        </Card>
+
+        <Card className="px-3.5 py-2.5 flex items-center justify-between shadow-xs">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-muted-foreground font-medium truncate">Valorización de inventario</p>
+            <div className="flex items-baseline gap-2 mt-0.5">
+              <span className="text-lg font-bold tracking-tight text-foreground truncate">
+                {overview ? overview.getFormattedValuation() : "-"}
+              </span>
+            </div>
+          </div>
+          <div className="p-2 rounded-md bg-blue-500/10 text-blue-500 shrink-0 ml-2">
+            <DollarSign className="h-4 w-4" />
           </div>
         </Card>
       </div>

@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
+const backendUrl: string = process.env.API_BACKEND_URL || "http://localhost:8081";
+
 const nextConfig: NextConfig = {
+  output: "standalone",
   cacheComponents: true,
   partialPrefetching: true,
   reactCompiler: true,
@@ -16,7 +19,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/v1/:path*",
-        destination: "http://localhost:8081/v1/:path*",
+        destination: `${backendUrl}/v1/:path*`,
       },
     ];
   },

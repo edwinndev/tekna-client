@@ -26,9 +26,15 @@ const refreshAccessToken = async (): Promise<string | null> => {
       .json<AuthOutput>();
 
     authStorage.updateTokens(rawResponse.accessToken, rawResponse.refreshToken);
+    if (rawResponse.user) {
+      authStorage.saveUser(rawResponse.user);
+    }
     return rawResponse.accessToken;
   } catch {
     authStorage.clearSession();
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("tekna:auth:unauthorized"));
+    }
     return null;
   }
 };

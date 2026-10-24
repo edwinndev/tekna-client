@@ -1,10 +1,11 @@
-"use client"
+"use client";
 
+import * as React from "react";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "@/components/ui/avatar"
+} from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,13 +14,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 import {
   BadgeCheckIcon,
   BellIcon,
@@ -31,28 +32,41 @@ import {
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth";
 
+const emptySubscribe = (): (() => void) => (): void => {};
+const getClientSnapshot = (): boolean => true;
+const getServerSnapshot = (): boolean => false;
+
 export function NavUser({
   user,
 }: {
   user: {
-    name: string
-    email: string
-    avatar: string
-  }
+    name: string;
+    email: string;
+    avatar: string;
+  };
 }) {
   const router = useRouter();
   const { user: authUser, logout } = useAuth();
   const { isMobile } = useSidebar();
 
-  const displayName = authUser
-    ? `${authUser.firstName} ${authUser.lastName}`.trim() || authUser.username
-    : user.name;
-  const displayEmail = authUser ? authUser.email : user.email;
+  const isClient: boolean = React.useSyncExternalStore(
+    emptySubscribe,
+    getClientSnapshot,
+    getServerSnapshot
+  );
 
-  const handleLogout = async () => {
+  const displayName: string =
+    isClient && authUser
+      ? `${authUser.firstName} ${authUser.lastName}`.trim() || authUser.username
+      : user.name;
+  const displayEmail: string =
+    isClient && authUser ? authUser.email : user.email;
+
+  const handleLogout = async (): Promise<void> => {
     await logout();
     router.push("/login");
   };
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -67,8 +81,12 @@ export function NavUser({
               <AvatarFallback>CN</AvatarFallback>
             </Avatar>
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-medium">{displayName}</span>
-              <span className="truncate text-xs">{displayEmail}</span>
+              <span className="truncate font-medium" suppressHydrationWarning>
+                {displayName}
+              </span>
+              <span className="truncate text-xs" suppressHydrationWarning>
+                {displayEmail}
+              </span>
             </div>
             <ChevronsUpDownIcon className="ml-auto size-4" />
           </DropdownMenuTrigger>
@@ -86,8 +104,12 @@ export function NavUser({
                     <AvatarFallback>CN</AvatarFallback>
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-medium">{displayName}</span>
-                    <span className="truncate text-xs">{displayEmail}</span>
+                    <span className="truncate font-medium" suppressHydrationWarning>
+                      {displayName}
+                    </span>
+                    <span className="truncate text-xs" suppressHydrationWarning>
+                      {displayEmail}
+                    </span>
                   </div>
                 </div>
               </DropdownMenuLabel>
@@ -123,5 +145,5 @@ export function NavUser({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

@@ -1,93 +1,103 @@
+import { getDefaultStore } from "jotai";
+import {
+  ACCESS_TOKEN_KEY,
+  accessTokenAtom,
+  clearSessionAtom,
+  currentUserAtom,
+  REFRESH_TOKEN_KEY,
+  refreshTokenAtom,
+  REMEMBER_ME_KEY,
+  rememberMeAtom,
+  saveSessionAtom,
+  updateTokensAtom,
+  USER_KEY,
+} from "../atoms/auth.atoms";
 import { AuthOutput, UserOutput } from "../types/auth";
 
-const ACCESS_TOKEN_KEY = "tekna_access_token";
-const REFRESH_TOKEN_KEY = "tekna_refresh_token";
-const USER_KEY = "tekna_user";
-const REMEMBER_ME_KEY = "tekna_remember_me";
-
 class AuthStorageService {
-  private getStorage(): Storage | null {
-    if (typeof window === "undefined") {
-      return null;
-    }
-    const isRemembered = localStorage.getItem(REMEMBER_ME_KEY) === "true";
-    return isRemembered ? localStorage : sessionStorage;
+  private get store() {
+    return getDefaultStore();
   }
 
-  public getAccessToken(): string | null {
+  private readFallbackItem(key: string): string | null {
     if (typeof window === "undefined") {
-      return null;
-    }
-    return (
-      localStorage.getItem(ACCESS_TOKEN_KEY) ||
-      sessionStorage.getItem(ACCESS_TOKEN_KEY)
-    );
-  }
-
-  public getRefreshToken(): string | null {
-    if (typeof window === "undefined") {
-      return null;
-    }
-    return (
-      localStorage.getItem(REFRESH_TOKEN_KEY) ||
-      sessionStorage.getItem(REFRESH_TOKEN_KEY)
-    );
-  }
-
-  public getUser(): UserOutput | null {
-    if (typeof window === "undefined") {
-      return null;
-    }
-    const rawUser =
-      localStorage.getItem(USER_KEY) || sessionStorage.getItem(USER_KEY);
-    if (!rawUser) {
       return null;
     }
     try {
-      const parsed = JSON.parse(rawUser) as UserOutput;
-      return parsed;
+      const raw: string | null = window.localStorage.getItem(key);
+      if (raw === null) {
+        return null;
+      }
+      try {
+        return JSON.parse(raw) as string;
+      } catch {
+        return raw;
+      }
     } catch {
       return null;
     }
   }
 
-  public saveSession(auth: AuthOutput, rememberMe: boolean): void {
-    if (typeof window === "undefined") {
-      return;
+  public getAccessToken(): string | null {
+    const fromAtom: string | null = this.store.get(accessTokenAtom);
+    if (fromAtom) {
+      return fromAtom;
     }
+    return this.readFallbackItem(ACCESS_TOKEN_KEY);
+  }
 
-    this.clearSession();
+  public getRefreshToken(): string | null {
+    const fromAtom: string | null = this.store.get(refreshTokenAtom);
+    if (fromAtom) {
+      return fromAtom;
+    }
+    return this.readFallbackItem(REFRESH_TOKEN_KEY);
+  }
 
-    const targetStorage = rememberMe ? localStorage : sessionStorage;
-    localStorage.setItem(REMEMBER_ME_KEY, String(rememberMe));
-    targetStorage.setItem(ACCESS_TOKEN_KEY, auth.accessToken);
-    targetStorage.setItem(REFRESH_TOKEN_KEY, auth.refreshToken);
-    targetStorage.setItem(USER_KEY, JSON.stringify(auth.user));
+  public getUser(): UserOutput | null {
+    const fromAtom: UserOutput | null = this.store.get(currentUserAtom);
+    if (fromAtom) {
+      return fromAtom;
+    }
+    if (typeof window === "undefined") {
+      return null;
+    }
+    try {
+      const raw: string | null = window.localStorage.getItem(USER_KEY);
+      if (!raw) {
+        return null;
+      }
+      return JSON.parse(raw) as UserOutput;
+    } catch {
+      return null;
+    }
+  }
+
+  public isRememberMe(): boolean {
+    const fromAtom: boolean = this.store.get(rememberMeAtom);
+    if (fromAtom) {
+      return true;
+    }
+    if (typeof window === "undefined") {
+      return false;
+    }
+    return window.localStorage.getItem(REMEMBER_ME_KEY) === "true";
+  }
+
+  public saveSession(auth: AuthOutput, rememberMe: boolean): void {
+    this.store.set(saveSessionAtom, { auth, rememberMe });
   }
 
   public updateTokens(accessToken: string, refreshToken: string): void {
-    if (typeof window === "undefined") {
-      return;
-    }
-    const isRemembered = localStorage.getItem(REMEMBER_ME_KEY) === "true";
-    const targetStorage = isRemembered ? localStorage : sessionStorage;
+    this.store.set(updateTokensAtom, { accessToken, refreshToken });
+  }
 
-    targetStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-    targetStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  public saveUser(user: UserOutput): void {
+    this.store.set(currentUserAtom, user);
   }
 
   public clearSession(): void {
-    if (typeof window === "undefined") {
-      return;
-    }
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    localStorage.removeItem(REMEMBER_ME_KEY);
-
-    sessionStorage.removeItem(ACCESS_TOKEN_KEY);
-    sessionStorage.removeItem(REFRESH_TOKEN_KEY);
-    sessionStorage.removeItem(USER_KEY);
+    this.store.set(clearSessionAtom);
   }
 
   public isAuthenticated(): boolean {

@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/features/auth";
 import { AppSidebar } from "@/components/app-sidebar";
 import {
   Breadcrumb,
@@ -35,11 +36,44 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
+  const router = useRouter();
   const pathname = usePathname();
-  const isAuthRoute = pathname === "/login" || pathname.startsWith("/login");
+  const { isAuthenticated, initialized } = useAuth();
+  const isAuthRoute =
+    pathname === "/login" ||
+    pathname.startsWith("/login") ||
+    pathname === "/logout" ||
+    pathname.startsWith("/logout");
+
+  React.useEffect(() => {
+    if (!initialized) {
+      return;
+    }
+    if (!isAuthenticated && !isAuthRoute) {
+      router.replace("/login");
+    } else if (isAuthenticated && isAuthRoute && !pathname.startsWith("/logout")) {
+      router.replace("/");
+    }
+  }, [initialized, isAuthenticated, isAuthRoute, pathname, router]);
+
+  React.useEffect(() => {
+    const handleUnauthorized = () => {
+      if (!isAuthRoute) {
+        router.replace("/login");
+      }
+    };
+    window.addEventListener("tekna:auth:unauthorized", handleUnauthorized);
+    return () => {
+      window.removeEventListener("tekna:auth:unauthorized", handleUnauthorized);
+    };
+  }, [isAuthRoute, router]);
 
   if (isAuthRoute) {
     return <main className="min-h-screen w-full bg-[#0d0a18]">{children}</main>;
+  }
+
+  if (!isAuthenticated && initialized) {
+    return null;
   }
 
   const currentTitle = routeTitleMap[pathname] || "Tekna Gamer";

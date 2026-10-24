@@ -30,6 +30,9 @@ class AuthService {
       .json<AuthOutput>();
 
     authStorage.updateTokens(response.accessToken, response.refreshToken);
+    if (response.user) {
+      authStorage.saveUser(response.user);
+    }
     return response;
   }
 
@@ -41,14 +44,16 @@ class AuthService {
           json: { refreshToken } satisfies RefreshTokenInput,
         });
       } catch {
-        // Silently continue if logout endpoint returns an error
+        // Silently continue if server session already expired
       }
     }
     authStorage.clearSession();
   }
 
   public async getMe(): Promise<UserOutput> {
-    return await apiClient.get("auth/me").json<UserOutput>();
+    const user: UserOutput = await apiClient.get("auth/me").json<UserOutput>();
+    authStorage.saveUser(user);
+    return user;
   }
 }
 
